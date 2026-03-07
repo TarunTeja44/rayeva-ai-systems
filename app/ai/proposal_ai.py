@@ -3,9 +3,18 @@ Module 2 AI Logic: B2B Proposal Generator.
 Separated from business logic for clean architecture.
 """
 
+import re
 from sqlalchemy.orm import Session
 from app.ai.client import ai_client
 from app.ai.prompts import PROPOSAL_SYSTEM_PROMPT, PROPOSAL_USER_PROMPT
+
+
+def _sanitize_input(text: str, max_length: int = 2000) -> str:
+    """Sanitize user input to prevent prompt injection."""
+    text = text[:max_length]
+    text = re.sub(r'(?i)(ignore\s+(previous|above|all)\s+(instructions?|prompts?|rules?))', '[FILTERED]', text)
+    text = re.sub(r'(?i)(system\s*:\s*|assistant\s*:\s*)', '[FILTERED]', text)
+    return text.strip()
 
 
 def generate_proposal(
@@ -21,10 +30,10 @@ def generate_proposal(
     """
     system_prompt = PROPOSAL_SYSTEM_PROMPT
     user_prompt = PROPOSAL_USER_PROMPT.format(
-        client_name=client_name,
-        client_industry=client_industry,
+        client_name=_sanitize_input(client_name, 200),
+        client_industry=_sanitize_input(client_industry, 100),
         budget=f"{budget:,.0f}",
-        requirements=requirements or "General sustainable product sourcing",
+        requirements=_sanitize_input(requirements, 2000) if requirements else "General sustainable product sourcing",
     )
 
     result = ai_client.generate(

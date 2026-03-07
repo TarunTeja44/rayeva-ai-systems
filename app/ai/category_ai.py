@@ -3,6 +3,7 @@ Module 1 AI Logic: Auto-Category & Tag Generator.
 Separated from business logic for clean architecture.
 """
 
+import re
 from sqlalchemy.orm import Session
 from app.ai.client import ai_client
 from app.ai.prompts import (
@@ -11,6 +12,16 @@ from app.ai.prompts import (
     PREDEFINED_CATEGORIES,
     SUSTAINABILITY_FILTER_OPTIONS,
 )
+
+
+def _sanitize_input(text: str, max_length: int = 2000) -> str:
+    """Sanitize user input to prevent prompt injection."""
+    # Truncate to max length
+    text = text[:max_length]
+    # Remove any attempts to override system instructions
+    text = re.sub(r'(?i)(ignore\s+(previous|above|all)\s+(instructions?|prompts?|rules?))', '[FILTERED]', text)
+    text = re.sub(r'(?i)(system\s*:\s*|assistant\s*:\s*)', '[FILTERED]', text)
+    return text.strip()
 
 
 def generate_category_tags(product_name: str, product_description: str, db: Session) -> dict:
@@ -26,8 +37,8 @@ def generate_category_tags(product_name: str, product_description: str, db: Sess
     )
 
     user_prompt = CATEGORY_USER_PROMPT.format(
-        product_name=product_name,
-        product_description=product_description,
+        product_name=_sanitize_input(product_name, 200),
+        product_description=_sanitize_input(product_description, 2000),
     )
 
     result = ai_client.generate(

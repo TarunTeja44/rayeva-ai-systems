@@ -2,7 +2,7 @@
 Module 1 API Routes: AI Auto-Category & Tag Generator endpoints.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.product import ProductInput, ProductResponse, ProductListResponse
@@ -33,7 +33,11 @@ def generate_categorization(product: ProductInput, db: Session = Depends(get_db)
 
 
 @router.get("/products", response_model=ProductListResponse)
-def list_products(skip: int = 0, limit: int = 50, db: Session = Depends(get_db)):
+def list_products(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
     """📦 List all categorized products."""
     return get_all_products(db, skip, limit)
 

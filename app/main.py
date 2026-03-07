@@ -3,7 +3,8 @@ Rayeva AI Systems — FastAPI Application Entry Point.
 AI-powered modules for sustainable commerce.
 """
 
-from fastapi import FastAPI, Depends
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -16,6 +17,20 @@ from app.routers import categories, proposals
 from app.models.log import AILog
 from app.seed import seed_categories
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize database and seed data on startup."""
+    init_db()
+    db = SessionLocal()
+    try:
+        seed_categories(db)
+    finally:
+        db.close()
+    print(f"🚀 {settings.APP_NAME} started")
+    print(f"🤖 AI Mode: {'LIVE (OpenAI)' if settings.is_ai_enabled else 'MOCK (Demo Data)'}")
+    yield
+
 # ─── App Initialization ─────────────────────────────────────────────────────
 
 app = FastAPI(
@@ -24,13 +39,14 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
-# CORS (allow all for demo)
+# CORS — allow_credentials must be False when origins is wildcard
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -52,7 +68,11 @@ def health_check():
 
 
 @app.get("/api/logs")
-def get_logs(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
+def get_logs(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
     """📊 View AI prompt/response logs."""
     logs = db.query(AILog).order_by(AILog.created_at.desc()).offset(skip).limit(limit).all()
     total = db.query(AILog).count()
@@ -78,16 +98,4 @@ def serve_frontend():
     return {"message": "Rayeva AI Systems API", "docs": "/docs"}
 
 
-# ─── Startup Event ───────────────────────────────────────────────────────────
-
-@app.on_event("startup")
-def on_startup():
-    """Initialize database and seed data on startup."""
-    init_db()
-    db = SessionLocal()
-    try:
-        seed_categories(db)
-    finally:
-        db.close()
-    print(f"🚀 {settings.APP_NAME} started")
-    print(f"🤖 AI Mode: {'LIVE (OpenAI)' if settings.is_ai_enabled else 'MOCK (Demo Data)'}")
+# Startup logic is handled by the lifespan context manager above.

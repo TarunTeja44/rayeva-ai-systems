@@ -104,31 +104,31 @@ function renderCategoryResult(data) {
     container.innerHTML = `
         <div class="result-section">
             <div class="result-label">Primary Category</div>
-            <div class="result-value">${cat.primary_category}</div>
+            <div class="result-value">${escapeHtml(cat.primary_category)}</div>
         </div>
         <div class="result-section">
             <div class="result-label">Sub-Category</div>
-            <div class="result-value" style="font-size:15px; color: var(--accent-blue)">${cat.sub_category}</div>
+            <div class="result-value" style="font-size:15px; color: var(--accent-blue)">${escapeHtml(cat.sub_category)}</div>
         </div>
         <div class="result-section">
             <div class="result-label">AI Confidence</div>
-            <span class="confidence-badge ${confidenceClass}">${confidenceIcon} ${cat.confidence.toUpperCase()}</span>
+            <span class="confidence-badge ${confidenceClass}">${confidenceIcon} ${escapeHtml(cat.confidence.toUpperCase())}</span>
         </div>
         <div class="result-section">
             <div class="result-label">SEO Tags</div>
             <div class="tag-list">
-                ${cat.seo_tags.map(t => `<span class="tag">${t}</span>`).join('')}
+                ${cat.seo_tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
             </div>
         </div>
         <div class="result-section">
             <div class="result-label">Sustainability Filters</div>
             <div class="tag-list">
-                ${cat.sustainability_filters.map(f => `<span class="tag green">🌿 ${f}</span>`).join('')}
+                ${cat.sustainability_filters.map(f => `<span class="tag green">🌿 ${escapeHtml(f)}</span>`).join('')}
             </div>
         </div>
         <div class="result-section">
             <div class="result-label">AI Reasoning</div>
-            <div class="impact-box">${cat.reasoning}</div>
+            <div class="impact-box">${escapeHtml(cat.reasoning)}</div>
         </div>
         <div class="result-section">
             <div class="result-label">AI Mode</div>
@@ -210,8 +210,8 @@ function renderProposalResult(data) {
     container.innerHTML = `
         <div class="result-section">
             <div class="result-label">Proposal for</div>
-            <div class="result-value">${data.client_name}</div>
-            <div style="color: var(--text-muted); font-size:12px; margin-top:2px">${data.client_industry} · Budget: ₹${Number(data.budget).toLocaleString('en-IN')}</div>
+            <div class="result-value">${escapeHtml(data.client_name)}</div>
+            <div style="color: var(--text-muted); font-size:12px; margin-top:2px">${escapeHtml(data.client_industry)} · Budget: ₹${Number(data.budget).toLocaleString('en-IN')}</div>
         </div>
 
         <div class="result-section">
@@ -229,8 +229,8 @@ function renderProposalResult(data) {
                     ${data.product_mix.map(p => `
                         <tr>
                             <td>
-                                <div style="font-weight:500">${p.product_name}</div>
-                                <div style="font-size:11px; color: var(--accent-green); margin-top:2px">🌿 ${p.sustainability_note}</div>
+                                <div style="font-weight:500">${escapeHtml(p.product_name)}</div>
+                                <div style="font-size:11px; color: var(--accent-green); margin-top:2px">🌿 ${escapeHtml(p.sustainability_note)}</div>
                             </td>
                             <td>${p.quantity}</td>
                             <td>₹${Number(p.unit_price).toLocaleString('en-IN')}</td>
@@ -265,14 +265,14 @@ function renderProposalResult(data) {
 
         <div class="result-section">
             <div class="result-label">🌍 Impact Positioning</div>
-            <div class="impact-box">${data.impact_summary}</div>
+            <div class="impact-box">${escapeHtml(data.impact_summary)}</div>
         </div>
 
         ${data.recommendations ? `
         <div class="result-section">
             <div class="result-label">💡 Strategic Recommendations</div>
             <div class="impact-box" style="border-color: rgba(59, 130, 246, 0.1); background: rgba(59, 130, 246, 0.03)">
-                ${data.recommendations}
+                ${escapeHtml(data.recommendations)}
             </div>
         </div>` : ''}
 

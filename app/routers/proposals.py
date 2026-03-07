@@ -2,7 +2,7 @@
 Module 2 API Routes: AI B2B Proposal Generator endpoints.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.proposal import ProposalInput, ProposalResponse, ProposalListResponse
@@ -39,7 +39,11 @@ def generate_proposal(proposal: ProposalInput, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=ProposalListResponse)
-def list_proposals(skip: int = 0, limit: int = 50, db: Session = Depends(get_db)):
+def list_proposals(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
     """📋 List all generated proposals."""
     return get_all_proposals(db, skip, limit)
 
