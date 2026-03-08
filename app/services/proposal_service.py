@@ -3,10 +3,14 @@ Module 2 Business Logic: Proposal Service.
 Handles the business rules and database operations, separate from AI logic.
 """
 
+import logging
 from sqlalchemy.orm import Session
 from app.models.proposal import Proposal, ProposalItem
+from app.schemas.proposal import ProposalItemSchema, CostBreakdown
 from app.ai.proposal_ai import generate_proposal
 from app.ai.client import ai_client
+
+logger = logging.getLogger(__name__)
 
 
 def create_proposal(
@@ -19,12 +23,21 @@ def create_proposal(
     """
     Business flow:
     1. Call AI to generate proposal
-    2. Validate budget constraints
+    2. Validate against Pydantic schema (fail-fast guard)
     3. Store proposal and line items
     4. Return structured response
     """
     # Step 1: AI generates proposal
     ai_result = generate_proposal(client_name, client_industry, budget, requirements, db)
+
+    # Step 2: Pydantic schema validation — fail-fast if AI output is malformed
+    try:
+        for item in ai_result.get("product_mix", []):
+            ProposalItemSchema(**item)
+        CostBreakdown(**ai_result.get("cost_breakdown", {}))
+    except Exception as e:
+        logger.error(f"AI output failed schema validation: {e} | raw={ai_result}")
+        raise ValueError(f"AI produced invalid output: {e}")
 
     # Step 2: Calculate totals
     total_cost = ai_result["cost_breakdown"].get("total", 0)

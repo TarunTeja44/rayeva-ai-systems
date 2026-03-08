@@ -3,22 +3,33 @@ Module 1 Business Logic: Category Service.
 Handles the business rules and database operations, separate from AI logic.
 """
 
+import logging
 from sqlalchemy.orm import Session
 from app.models.product import Product, Category
+from app.schemas.product import CategoryResult
 from app.ai.category_ai import generate_category_tags
 from app.ai.client import ai_client
+
+logger = logging.getLogger(__name__)
 
 
 def categorize_product(name: str, description: str, db: Session) -> dict:
     """
     Business flow:
     1. Call AI to generate categorization
-    2. Validate against business rules
+    2. Validate against Pydantic schema (fail-fast guard)
     3. Store in database
     4. Return structured response
     """
     # Step 1: AI generates categorization
     ai_result = generate_category_tags(name, description, db)
+
+    # Step 2: Pydantic schema validation — fail-fast if AI output is malformed
+    try:
+        validated_schema = CategoryResult(**ai_result)
+    except Exception as e:
+        logger.error(f"AI output failed schema validation: {e} | raw={ai_result}")
+        raise ValueError(f"AI produced invalid output: {e}")
 
     # Step 2: Create/find category in DB
     category = _get_or_create_category(ai_result["primary_category"], db)

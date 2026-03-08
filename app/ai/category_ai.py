@@ -15,11 +15,13 @@ from app.ai.prompts import (
 
 
 def _sanitize_input(text: str, max_length: int = 2000) -> str:
-    """Sanitize user input to prevent prompt injection."""
+    """Sanitize user input to prevent prompt injection and format-string breakage."""
     # Truncate to max length
     text = text[:max_length]
-    # Remove any attempts to override system instructions
-    text = re.sub(r'(?i)(ignore\s+(previous|above|all)\s+(instructions?|prompts?|rules?))', '[FILTERED]', text)
+    # Escape curly braces to prevent .format() injection/crashes
+    text = text.replace("{", "{{").replace("}", "}}")
+    # Remove prompt injection attempts — catches 'ignore [any words] instructions/prompts/rules'
+    text = re.sub(r'(?i)ignore\s+(?:\w+\s+){0,4}(instructions?|prompts?|rules?)', '[FILTERED]', text)
     text = re.sub(r'(?i)(system\s*:\s*|assistant\s*:\s*)', '[FILTERED]', text)
     return text.strip()
 
