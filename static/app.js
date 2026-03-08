@@ -1,347 +1,246 @@
 /**
- * Rayeva AI Systems — Frontend Application Logic
- * Handles form submissions, API calls, and result rendering.
+ * Rayeva AI Systems — Frontend v2
  */
 
 const API_BASE = '';
 
-// ─── Tab Navigation ─────────────────────────────────────────────────────────
-
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        const target = tab.dataset.tab;
-
-        // Update tabs
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-
-        // Update panels
+// ─── Nav ──────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+        const tab = item.dataset.tab;
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        document.getElementById(`panel-${target}`).classList.add('active');
-
-        // Load logs when switching to logs tab
-        if (target === 'logs') loadLogs();
+        document.getElementById(`panel-${tab}`).classList.add('active');
+        if (tab === 'logs') loadLogs();
     });
 });
 
-// ─── Health Check ───────────────────────────────────────────────────────────
-
+// ─── Health ───────────────────────────────────────────────────────────────────
 async function checkHealth() {
     try {
-        const res = await fetch(`${API_BASE}/api/health`);
-        const data = await res.json();
-        const badge = document.getElementById('aiStatus');
-        const text = document.getElementById('aiModeText');
-
-        if (data.ai_mode.includes('mock')) {
-            badge.classList.add('mock');
-            text.textContent = 'Demo Mode (Mock AI)';
-        } else {
-            text.textContent = 'Live AI Connected';
-        }
-    } catch {
-        const badge = document.getElementById('aiStatus');
-        badge.classList.add('mock');
-        document.getElementById('aiModeText').textContent = 'Offline';
-    }
+        const d = await fetch(`${API_BASE}/api/health`).then(r => r.json());
+        const el = document.getElementById('aiStatus');
+        const tx = document.getElementById('aiModeText');
+        if (d.ai_mode?.includes('mock')) { el.classList.add('mock'); tx.textContent = 'Demo Mode'; }
+        else tx.textContent = 'Live AI';
+    } catch { document.getElementById('aiStatus').classList.add('mock'); document.getElementById('aiModeText').textContent = 'Offline'; }
 }
 checkHealth();
 
-// ─── Module 1: Category Generator ───────────────────────────────────────────
-
+// ─── Module 1 ─────────────────────────────────────────────────────────────────
 const EXAMPLES = {
-    bamboo: {
-        name: 'Bamboo Toothbrush',
-        desc: 'Eco-friendly toothbrush made from sustainably sourced bamboo with charcoal-infused natural bristles. Features a biodegradable handle, BPA-free materials, and comes in fully recyclable kraft paper packaging. Perfect for zero-waste bathrooms.'
-    },
-    tote: {
-        name: 'Handwoven Jute Tote Bag',
-        desc: 'Artisan-crafted tote bag made from 100% natural jute fiber. Reinforced cotton lining, leather-free handles, and vegetable dye prints. Supports local weavers in West Bengal. Capacity: 15L, perfect for daily shopping.'
-    },
-    soap: {
-        name: 'Cold-Pressed Organic Neem Soap',
-        desc: 'Handmade soap bar using cold-pressed neem oil, coconut oil, and turmeric. No synthetic fragrances, parabens, or sulfates. Wrapped in banana leaf packaging. Antibacterial properties, suitable for sensitive skin. Vegan and cruelty-free.'
-    }
+    bamboo: { name: 'Bamboo Toothbrush', desc: 'Eco-friendly toothbrush made from sustainably sourced bamboo with charcoal-infused natural bristles. Features a biodegradable handle, BPA-free materials, and comes in fully recyclable kraft paper packaging. Perfect for zero-waste bathrooms.' },
+    tote: { name: 'Handwoven Jute Tote Bag', desc: 'Artisan-crafted tote bag made from 100% natural jute fiber. Reinforced cotton lining, leather-free handles, and vegetable dye prints. Supports local weavers in West Bengal. 15L capacity, perfect for daily shopping.' },
+    soap: { name: 'Cold-Pressed Organic Neem Soap', desc: 'Handmade soap bar using cold-pressed neem oil, coconut oil, and turmeric. No synthetic fragrances, parabens, or sulfates. Wrapped in banana leaf packaging. Antibacterial, suitable for sensitive skin. Vegan and cruelty-free.' }
 };
 
-function fillExample(type) {
-    document.getElementById('productName').value = EXAMPLES[type].name;
-    document.getElementById('productDesc').value = EXAMPLES[type].desc;
+function fillExample(t) {
+    document.getElementById('productName').value = EXAMPLES[t].name;
+    document.getElementById('productDesc').value = EXAMPLES[t].desc;
 }
 
-document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+document.getElementById('categoryForm').addEventListener('submit', async e => {
     e.preventDefault();
     const name = document.getElementById('productName').value.trim();
     const desc = document.getElementById('productDesc').value.trim();
     if (!name || !desc) return;
-
-    showLoading('Generating categories & tags...');
-
+    showLoading('Generating categories & tags…');
     try {
         const res = await fetch(`${API_BASE}/api/categories/generate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, description: desc })
         });
-
         if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        renderCategoryResult(data);
-    } catch (err) {
-        alert('Error: ' + err.message);
-    } finally {
-        hideLoading();
-    }
+        renderCategory(await res.json());
+    } catch (err) { alert('Error: ' + err.message); } finally { hideLoading(); }
 });
 
-function renderCategoryResult(data) {
-    const cat = data.categorization;
-    const container = document.getElementById('categoryContent');
+function renderCategory(data) {
+    const c = data.categorization;
+    const confCls = c.confidence === 'high' ? 'conf-high' : c.confidence === 'medium' ? 'conf-medium' : 'conf-low';
+    const confIcon = c.confidence === 'high' ? '●' : c.confidence === 'medium' ? '◑' : '○';
+    const modeTag = data.ai_mode === 'live' ? '<span class="tag b">⚡ Live AI</span>' : '<span class="tag a">🎭 Demo</span>';
 
-    const confidenceClass = `confidence-${cat.confidence}`;
-    const confidenceIcon = cat.confidence === 'high' ? '🟢' : cat.confidence === 'medium' ? '🟡' : '🔴';
+    document.getElementById('categoryContent').innerHTML = `
+    <div class="res-hero">
+      <div class="res-hero-label">Primary Category</div>
+      <div class="res-hero-value">${escapeHtml(c.primary_category)}</div>
+      <div class="res-hero-sub">${escapeHtml(c.sub_category)}</div>
+    </div>
 
-    container.innerHTML = `
-        <div class="result-section">
-            <div class="result-label">Primary Category</div>
-            <div class="result-value">${escapeHtml(cat.primary_category)}</div>
-        </div>
-        <div class="result-section">
-            <div class="result-label">Sub-Category</div>
-            <div class="result-value" style="font-size:15px; color: var(--accent-blue)">${escapeHtml(cat.sub_category)}</div>
-        </div>
-        <div class="result-section">
-            <div class="result-label">AI Confidence</div>
-            <span class="confidence-badge ${confidenceClass}">${confidenceIcon} ${escapeHtml(cat.confidence.toUpperCase())}</span>
-        </div>
-        <div class="result-section">
-            <div class="result-label">SEO Tags</div>
-            <div class="tag-list">
-                ${cat.seo_tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
-            </div>
-        </div>
-        <div class="result-section">
-            <div class="result-label">Sustainability Filters</div>
-            <div class="tag-list">
-                ${cat.sustainability_filters.map(f => `<span class="tag green">🌿 ${escapeHtml(f)}</span>`).join('')}
-            </div>
-        </div>
-        <div class="result-section">
-            <div class="result-label">AI Reasoning</div>
-            <div class="impact-box">${escapeHtml(cat.reasoning)}</div>
-        </div>
-        <div class="result-section">
-            <div class="result-label">AI Mode</div>
-            <span class="tag purple">${data.ai_mode === 'live' ? '🤖 Live AI' : '🎭 Demo/Mock'}</span>
-        </div>
-    `;
+    <div class="res-grid">
+      <div class="res-tile">
+        <div class="res-tile-label">Confidence</div>
+        <span class="conf ${confCls}">${confIcon} ${escapeHtml(c.confidence.toUpperCase())}</span>
+      </div>
+      <div class="res-tile">
+        <div class="res-tile-label">Mode</div>
+        ${modeTag}
+      </div>
+    </div>
+
+    <div class="res-section">
+      <div class="res-section-label">SEO Tags</div>
+      <div class="tag-row">${c.seo_tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+    </div>
+
+    <div class="res-section">
+      <div class="res-section-label">Sustainability Filters</div>
+      <div class="tag-row">${c.sustainability_filters.map(f => `<span class="tag g">🌿 ${escapeHtml(f)}</span>`).join('')}</div>
+    </div>
+
+    <div class="res-section">
+      <div class="res-section-label">AI Reasoning</div>
+      <div class="reason-box">${escapeHtml(c.reasoning)}</div>
+    </div>
+  `;
 
     document.getElementById('categoryPlaceholder').classList.add('hidden');
-    container.classList.remove('hidden');
-
-    // Show JSON
-    const jsonSection = document.getElementById('categoryJson');
+    document.getElementById('categoryContent').classList.remove('hidden');
     document.getElementById('categoryJsonCode').textContent = JSON.stringify(data, null, 2);
-    jsonSection.classList.remove('hidden');
+    document.getElementById('categoryJson').classList.remove('hidden');
 }
 
-// ─── Module 2: Proposal Generator ───────────────────────────────────────────
-
-const PROPOSAL_EXAMPLES = {
-    office: {
-        clientName: 'GreenTech Solutions Pvt Ltd',
-        industry: 'IT & Software',
-        budget: 100000,
-        requirements: 'Sustainable office supplies for 50 employees — notebooks, pens, desk organizers. Also need eco-friendly welcome kits for new joiners and branded corporate gifts.'
-    },
-    hotel: {
-        clientName: 'EcoStay Hotels',
-        industry: 'Hospitality',
-        budget: 200000,
-        requirements: 'Replace all single-use plastic amenities across 30 rooms — toiletries, slippers, laundry bags, key cards. Looking for premium, guest-facing sustainable alternatives.'
-    }
+// ─── Module 2 ─────────────────────────────────────────────────────────────────
+const PROPOSAL_EX = {
+    office: { clientName: 'GreenTech Solutions Pvt Ltd', industry: 'IT & Software', budget: 100000, requirements: 'Sustainable office supplies for 50 employees — notebooks, pens, desk organizers. Eco-friendly welcome kits for new joiners.' },
+    hotel: { clientName: 'EcoStay Hotels', industry: 'Hospitality', budget: 200000, requirements: 'Replace all single-use plastic amenities across 30 rooms — toiletries, slippers, laundry bags. Premium sustainable alternatives.' }
 };
 
-function fillProposalExample(type) {
-    const ex = PROPOSAL_EXAMPLES[type];
+function fillProposalExample(t) {
+    const ex = PROPOSAL_EX[t];
     document.getElementById('clientName').value = ex.clientName;
     document.getElementById('clientIndustry').value = ex.industry;
     document.getElementById('budget').value = ex.budget;
     document.getElementById('requirements').value = ex.requirements;
 }
 
-document.getElementById('proposalForm').addEventListener('submit', async (e) => {
+document.getElementById('proposalForm').addEventListener('submit', async e => {
     e.preventDefault();
-    const clientName = document.getElementById('clientName').value.trim();
-    const clientIndustry = document.getElementById('clientIndustry').value.trim();
+    const client_name = document.getElementById('clientName').value.trim();
+    const client_industry = document.getElementById('clientIndustry').value.trim();
     const budget = parseFloat(document.getElementById('budget').value);
-    const requirements = document.getElementById('requirements').value.trim();
-
-    if (!clientName || !clientIndustry || !budget) return;
-
-    showLoading('Generating B2B proposal...');
-
+    const requirements = document.getElementById('requirements').value.trim() || null;
+    if (!client_name || !client_industry || !budget) return;
+    showLoading('Generating B2B proposal…');
     try {
         const res = await fetch(`${API_BASE}/api/proposals/generate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                client_name: clientName,
-                client_industry: clientIndustry,
-                budget,
-                requirements: requirements || null
-            })
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ client_name, client_industry, budget, requirements })
         });
-
         if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        renderProposalResult(data);
-    } catch (err) {
-        alert('Error: ' + err.message);
-    } finally {
-        hideLoading();
-    }
+        renderProposal(await res.json());
+    } catch (err) { alert('Error: ' + err.message); } finally { hideLoading(); }
 });
 
-function renderProposalResult(data) {
-    const container = document.getElementById('proposalContent');
+function renderProposal(data) {
     const cost = data.cost_breakdown;
+    const fmt = n => '₹' + Number(n).toLocaleString('en-IN');
+    const modeTag = data.ai_mode === 'live' ? '<span class="tag b">⚡ Live AI</span>' : '<span class="tag a">🎭 Demo</span>';
 
-    container.innerHTML = `
-        <div class="result-section">
-            <div class="result-label">Proposal for</div>
-            <div class="result-value">${escapeHtml(data.client_name)}</div>
-            <div style="color: var(--text-muted); font-size:12px; margin-top:2px">${escapeHtml(data.client_industry)} · Budget: ₹${Number(data.budget).toLocaleString('en-IN')}</div>
-        </div>
+    const rows = data.product_mix.map(p => `
+    <tr>
+      <td><div class="ptd-name">${escapeHtml(p.product_name)}</div><div class="ptd-eco">🌿 ${escapeHtml(p.sustainability_note)}</div></td>
+      <td>${p.quantity}</td>
+      <td>${fmt(p.unit_price)}</td>
+      <td class="ptd-amt">${fmt(p.total_price)}</td>
+    </tr>`).join('');
 
-        <div class="result-section">
-            <div class="result-label">Suggested Product Mix (${data.product_mix.length} items)</div>
-            <table class="product-table">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Qty</th>
-                        <th>Unit ₹</th>
-                        <th>Total ₹</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${data.product_mix.map(p => `
-                        <tr>
-                            <td>
-                                <div style="font-weight:500">${escapeHtml(p.product_name)}</div>
-                                <div style="font-size:11px; color: var(--accent-green); margin-top:2px">🌿 ${escapeHtml(p.sustainability_note)}</div>
-                            </td>
-                            <td>${p.quantity}</td>
-                            <td>₹${Number(p.unit_price).toLocaleString('en-IN')}</td>
-                            <td style="font-weight:600; color: var(--accent-green)">₹${Number(p.total_price).toLocaleString('en-IN')}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
+    document.getElementById('proposalContent').innerHTML = `
+    <div class="client-header">
+      <div>
+        <div class="client-name-big">${escapeHtml(data.client_name)}</div>
+        <div class="client-sub">${escapeHtml(data.client_industry)}</div>
+      </div>
+      <div class="budget-pill">${fmt(data.budget)}</div>
+    </div>
 
-        <div class="result-section">
-            <div class="result-label">Cost Breakdown</div>
-            <div class="cost-grid">
-                <div class="cost-item">
-                    <div class="label">Subtotal</div>
-                    <div class="value blue">₹${Number(cost.subtotal).toLocaleString('en-IN')}</div>
-                </div>
-                <div class="cost-item">
-                    <div class="label">Green Premium</div>
-                    <div class="value orange">₹${Number(cost.sustainable_premium).toLocaleString('en-IN')}</div>
-                </div>
-                <div class="cost-item">
-                    <div class="label">Savings vs Conventional</div>
-                    <div class="value">₹${Number(cost.estimated_savings_vs_conventional).toLocaleString('en-IN')}</div>
-                </div>
-                <div class="cost-item">
-                    <div class="label">Remaining Budget</div>
-                    <div class="value">₹${Number(cost.remaining_budget).toLocaleString('en-IN')}</div>
-                </div>
-            </div>
-        </div>
+    <div class="res-section">
+      <div class="section-title">Product Mix · ${data.product_mix.length} items</div>
+      <table class="ptable">
+        <thead><tr><th>Product</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
 
-        <div class="result-section">
-            <div class="result-label">🌍 Impact Positioning</div>
-            <div class="impact-box">${escapeHtml(data.impact_summary)}</div>
-        </div>
+    <div class="divider"></div>
 
-        ${data.recommendations ? `
-        <div class="result-section">
-            <div class="result-label">💡 Strategic Recommendations</div>
-            <div class="impact-box" style="border-color: rgba(59, 130, 246, 0.1); background: rgba(59, 130, 246, 0.03)">
-                ${escapeHtml(data.recommendations)}
-            </div>
-        </div>` : ''}
+    <div class="res-section">
+      <div class="section-title">Cost Breakdown</div>
+      <div class="cost-bento">
+        <div class="cost-tile"><div class="cost-tile-label">Subtotal</div><div class="cost-tile-val">${fmt(cost.subtotal)}</div></div>
+        <div class="cost-tile"><div class="cost-tile-label">Green Premium</div><div class="cost-tile-val">${fmt(cost.sustainable_premium)}</div></div>
+        <div class="cost-tile"><div class="cost-tile-label">Est. Savings</div><div class="cost-tile-val">${fmt(cost.estimated_savings_vs_conventional)}</div></div>
+        <div class="cost-tile"><div class="cost-tile-label">Remaining</div><div class="cost-tile-val">${fmt(cost.remaining_budget)}</div></div>
+      </div>
+    </div>
 
-        <div class="result-section">
-            <div class="result-label">AI Mode</div>
-            <span class="tag purple">${data.ai_mode === 'live' ? '🤖 Live AI' : '🎭 Demo/Mock'}</span>
-        </div>
-    `;
+    <div class="divider"></div>
+
+    <div class="res-section">
+      <div class="section-title">🌍 Impact Positioning</div>
+      <div class="impact-banner">${escapeHtml(data.impact_summary)}</div>
+    </div>
+
+    ${data.recommendations ? `
+    <div class="res-section">
+      <div class="section-title">💡 Strategic Recommendations</div>
+      <div class="rec-banner">${escapeHtml(data.recommendations)}</div>
+    </div>` : ''}
+
+    <div class="res-section">
+      <div class="section-title">Mode</div>
+      ${modeTag}
+    </div>
+  `;
 
     document.getElementById('proposalPlaceholder').classList.add('hidden');
-    container.classList.remove('hidden');
-
-    // Show JSON
-    const jsonSection = document.getElementById('proposalJson');
+    document.getElementById('proposalContent').classList.remove('hidden');
     document.getElementById('proposalJsonCode').textContent = JSON.stringify(data, null, 2);
-    jsonSection.classList.remove('hidden');
+    document.getElementById('proposalJson').classList.remove('hidden');
 }
 
-// ─── Logs ───────────────────────────────────────────────────────────────────
-
+// ─── Logs ─────────────────────────────────────────────────────────────────────
 async function loadLogs() {
-    const container = document.getElementById('logsContent');
+    const el = document.getElementById('logsContent');
     try {
-        const res = await fetch(`${API_BASE}/api/logs?limit=20`);
-        const data = await res.json();
-
-        if (data.logs.length === 0) {
-            container.innerHTML = `
-                <div class="placeholder">
-                    <div class="placeholder-icon">📜</div>
-                    <p>No AI calls logged yet. Generate some categories or proposals first!</p>
-                </div>
-            `;
+        const data = await fetch(`${API_BASE}/api/logs?limit=20`).then(r => r.json());
+        if (!data.logs.length) {
+            el.innerHTML = `<div class="empty"><div class="empty-icon">📜</div><p>No AI calls yet. Generate something first!</p></div>`;
             return;
         }
-
-        container.innerHTML = data.logs.map(log => `
-            <div class="log-entry">
-                <div class="log-header">
-                    <span class="log-module">${log.module}</span>
-                    <div class="log-meta">
-                        <span class="log-status ${log.status}">${log.status}</span>
-                        <span>${log.model_used || 'N/A'}</span>
-                        <span>${log.latency_ms ? log.latency_ms.toFixed(0) + 'ms' : ''}</span>
-                        <span>${log.tokens_used ? log.tokens_used + ' tokens' : ''}</span>
-                    </div>
-                </div>
-                <div class="log-prompt">${escapeHtml(log.prompt)}</div>
-                <div class="log-response">${escapeHtml(log.response)}</div>
-            </div>
-        `).join('');
-    } catch {
-        container.innerHTML = '<div class="placeholder"><p>Failed to load logs</p></div>';
-    }
+        el.innerHTML = data.logs.map(log => `
+      <div class="log-entry">
+        <div class="log-top">
+          <span class="log-mod">${escapeHtml(log.module)}</span>
+          <div class="log-meta">
+            <span class="log-sbadge ${log.status}">${log.status}</span>
+            <span>${escapeHtml(log.model_used || 'N/A')}</span>
+            ${log.latency_ms != null ? `<span>${Math.round(log.latency_ms)}ms</span>` : ''}
+            ${log.tokens_used != null ? `<span>${log.tokens_used} tokens</span>` : ''}
+          </div>
+        </div>
+        <div class="log-cols">
+          <div><div class="log-section-label">Prompt</div><div class="log-box">${escapeHtml(log.prompt)}</div></div>
+          <div><div class="log-section-label">Response</div><div class="log-box">${escapeHtml(log.response)}</div></div>
+        </div>
+      </div>`).join('');
+    } catch { el.innerHTML = `<div class="empty"><p>Failed to load logs.</p></div>`; }
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function showLoading(t) { document.getElementById('loadingText').textContent = t; document.getElementById('loadingOverlay').classList.remove('hidden'); }
+function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
 
-function showLoading(text) {
-    document.getElementById('loadingText').textContent = text;
-    document.getElementById('loadingOverlay').classList.remove('hidden');
+function copyJson(id, btn) {
+    navigator.clipboard.writeText(document.getElementById(id).textContent).then(() => {
+        btn.textContent = 'Copied!'; btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+    });
 }
 
-function hideLoading() {
-    document.getElementById('loadingOverlay').classList.add('hidden');
-}
-
-function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+function escapeHtml(s) {
+    if (!s) return '';
+    const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML;
 }

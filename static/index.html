@@ -1,195 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rayeva AI Systems — Sustainable Commerce Intelligence</title>
-    <meta name="description" content="AI-powered modules for sustainable commerce: Auto-Category Generator & B2B Proposal Generator">
+    <title>Rayeva AI — Sustainable Commerce Intelligence</title>
+    <meta name="description" content="AI-powered modules for sustainable commerce">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
-    <!-- ─── Header ────────────────────────────────────────────────── -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <div class="logo-icon">🌿</div>
+
+    <div class="bg-mesh"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <div class="app-shell">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-mark">🌿</div>
                 <div>
-                    <h1>Rayeva AI Systems</h1>
-                    <p class="subtitle">Sustainable Commerce Intelligence</p>
+                    <div class="logo-name">Rayeva</div>
+                    <div class="logo-sub">AI Systems</div>
                 </div>
             </div>
-            <div class="status-badge" id="aiStatus">
+
+            <div class="sidebar-status" id="aiStatus">
                 <span class="status-dot"></span>
-                <span id="aiModeText">Checking...</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- ─── Navigation Tabs ───────────────────────────────────────── -->
-    <nav class="tabs">
-        <button class="tab active" data-tab="module1" id="tab-module1">
-            <span class="tab-icon">🏷️</span>
-            <span class="tab-label">Auto-Category Generator</span>
-            <span class="tab-badge">Module 1</span>
-        </button>
-        <button class="tab" data-tab="module2" id="tab-module2">
-            <span class="tab-icon">📄</span>
-            <span class="tab-label">B2B Proposal Generator</span>
-            <span class="tab-badge">Module 2</span>
-        </button>
-        <button class="tab" data-tab="logs" id="tab-logs">
-            <span class="tab-icon">📊</span>
-            <span class="tab-label">AI Logs</span>
-        </button>
-    </nav>
-
-    <!-- ─── Module 1: Category Generator ──────────────────────────── -->
-    <main class="content">
-        <section class="panel active" id="panel-module1">
-            <div class="panel-header">
-                <h2>🏷️ AI Auto-Category & Tag Generator</h2>
-                <p>Enter a product name and description to auto-generate categories, SEO tags, and sustainability filters.</p>
+                <span id="aiModeText">Checking…</span>
             </div>
 
-            <div class="grid-2">
-                <!-- Input Form -->
+            <nav class="sidebar-nav">
+                <div class="nav-group-label">Modules</div>
+                <button class="nav-item active" data-tab="module1" id="tab-module1">
+                    <span class="nav-icon-wrap">
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                            <rect x="1.5" y="1.5" width="5" height="5" rx="1.2" fill="currentColor" />
+                            <rect x="8.5" y="1.5" width="5" height="5" rx="1.2" fill="currentColor" opacity=".5" />
+                            <rect x="1.5" y="8.5" width="5" height="5" rx="1.2" fill="currentColor" opacity=".5" />
+                            <rect x="8.5" y="8.5" width="5" height="5" rx="1.2" fill="currentColor" opacity=".25" />
+                        </svg>
+                    </span>
+                    <span class="nav-label">Category Generator</span>
+                    <span class="nav-dot"></span>
+                </button>
+                <button class="nav-item" data-tab="module2" id="tab-module2">
+                    <span class="nav-icon-wrap">
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                            <path d="M2.5 4h10M2.5 7.5h7M2.5 11h5" stroke="currentColor" stroke-width="1.4"
+                                stroke-linecap="round" />
+                        </svg>
+                    </span>
+                    <span class="nav-label">B2B Proposal</span>
+                    <span class="nav-dot"></span>
+                </button>
+
+                <div class="nav-group-label" style="margin-top:18px">Observability</div>
+                <button class="nav-item" data-tab="logs" id="tab-logs">
+                    <span class="nav-icon-wrap">
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                            <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.3" />
+                            <path d="M7.5 4.5v3.2l2 1.8" stroke="currentColor" stroke-width="1.3"
+                                stroke-linecap="round" />
+                        </svg>
+                    </span>
+                    <span class="nav-label">AI Logs</span>
+                    <span class="nav-dot"></span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="/docs" target="_blank" class="sidebar-link">
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                        <path d="M1.5 11.5L11.5 1.5M11.5 1.5H5.5M11.5 1.5V7.5" stroke="currentColor" stroke-width="1.4"
+                            stroke-linecap="round" />
+                    </svg>
+                    API Docs
+                </a>
+                <a href="https://github.com/TarunTeja44/rayeva-ai-systems" target="_blank" class="sidebar-link">
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                        <path
+                            d="M6.5 1C3.46 1 1 3.46 1 6.5c0 2.43 1.57 4.49 3.75 5.22.28.05.38-.12.38-.27v-.97c-1.53.33-1.85-.74-1.85-.74-.25-.63-.61-.8-.61-.8-.5-.34.04-.33.04-.33.55.04.84.57.84.57.49.84 1.28.6 1.59.46.05-.36.19-.6.35-.74-1.22-.14-2.5-.61-2.5-2.71 0-.6.21-1.09.57-1.47-.06-.14-.25-.7.05-1.45 0 0 .47-.15 1.53.57A4.8 4.8 0 0 1 6.5 4.5c.47 0 .95.06 1.39.18 1.06-.72 1.53-.57 1.53-.57.3.75.11 1.31.05 1.45.36.38.57.87.57 1.47 0 2.11-1.28 2.57-2.5 2.71.2.17.37.5.37 1.01v1.5c0 .15.1.32.38.27C9.93 10.99 12 8.93 12 6.5 12 3.46 9.54 1 6.5 1z"
+                            fill="currentColor" />
+                    </svg>
+                    GitHub
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="main">
+
+            <!-- ── Module 1 ── -->
+            <section class="panel active" id="panel-module1">
+                <div class="page-header">
+                    <div>
+                        <div class="page-eyebrow">Module 1</div>
+                        <h1 class="page-title">AI Category & Tag Generator</h1>
+                        <p class="page-desc">Auto-assign categories, generate SEO tags, and suggest sustainability
+                            filters from a product description.</p>
+                    </div>
+                    <div class="header-badges">
+                        <span class="badge"><span class="badge-dot g"></span>14 categories</span>
+                        <span class="badge"><span class="badge-dot b"></span>15 filters</span>
+                    </div>
+                </div>
+
+                <div class="workspace">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon-wrap green">✦</div>
+                            <span class="card-title">Product Details</span>
+                        </div>
+                        <form id="categoryForm">
+                            <div class="field">
+                                <label class="label" for="productName">Product Name</label>
+                                <input class="input" type="text" id="productName" placeholder="e.g., Bamboo Toothbrush"
+                                    required>
+                            </div>
+                            <div class="field">
+                                <label class="label" for="productDesc">Description</label>
+                                <textarea class="textarea" id="productDesc" rows="5"
+                                    placeholder="Describe materials, features, eco-friendly aspects…"
+                                    required></textarea>
+                            </div>
+                            <button type="submit" class="cta" id="btnCategorize">
+                                <span>✦</span> Generate Categories & Tags <span class="cta-arrow">→</span>
+                            </button>
+                        </form>
+                        <div class="presets">
+                            <span class="presets-label">Try an example</span>
+                            <div class="presets-row">
+                                <button class="chip" onclick="fillExample('bamboo')">🪥 Bamboo Brush</button>
+                                <button class="chip" onclick="fillExample('tote')">👜 Jute Bag</button>
+                                <button class="chip" onclick="fillExample('soap')">🧼 Organic Soap</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card result-glow">
+                        <div class="card-header">
+                            <div class="card-icon-wrap green">◈</div>
+                            <span class="card-title">AI Output</span>
+                        </div>
+                        <div class="empty" id="categoryPlaceholder">
+                            <div class="empty-icon">🤖</div>
+                            <p>Submit a product to see<br>AI-generated categorization</p>
+                        </div>
+                        <div class="ai-result hidden" id="categoryContent"></div>
+                    </div>
+                </div>
+
+                <div class="card json-card hidden" id="categoryJson">
+                    <div class="card-header">
+                        <div class="card-icon-wrap mono">{ }</div>
+                        <span class="card-title">Structured JSON Output</span>
+                        <button class="copy-btn" onclick="copyJson('categoryJsonCode', this)">Copy</button>
+                    </div>
+                    <div class="json-pre"><code id="categoryJsonCode"></code></div>
+                </div>
+            </section>
+
+            <!-- ── Module 2 ── -->
+            <section class="panel" id="panel-module2">
+                <div class="page-header">
+                    <div>
+                        <div class="page-eyebrow">Module 2</div>
+                        <h1 class="page-title">B2B Proposal Generator</h1>
+                        <p class="page-desc">AI-powered sustainable procurement proposals with budget allocation and
+                            impact positioning.</p>
+                    </div>
+                    <div class="header-badges">
+                        <span class="badge"><span class="badge-dot g"></span>INR pricing</span>
+                        <span class="badge"><span class="badge-dot a"></span>Budget-aware</span>
+                    </div>
+                </div>
+
+                <div class="workspace">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon-wrap green">✦</div>
+                            <span class="card-title">Client Details</span>
+                        </div>
+                        <form id="proposalForm">
+                            <div class="field-row">
+                                <div class="field">
+                                    <label class="label" for="clientName">Company</label>
+                                    <input class="input" type="text" id="clientName" placeholder="GreenTech Solutions"
+                                        required>
+                                </div>
+                                <div class="field">
+                                    <label class="label" for="clientIndustry">Industry</label>
+                                    <input class="input" type="text" id="clientIndustry" placeholder="IT & Software"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="label" for="budget">Budget (₹ INR)</label>
+                                <div class="pfx-wrap">
+                                    <span class="pfx">₹</span>
+                                    <input class="input pfx-input" type="number" id="budget" placeholder="100000"
+                                        min="1000" required>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="label" for="requirements">Requirements <span
+                                        class="opt">optional</span></label>
+                                <textarea class="textarea" id="requirements" rows="3"
+                                    placeholder="Specific needs, employee count, product preferences…"></textarea>
+                            </div>
+                            <button type="submit" class="cta" id="btnProposal">
+                                <span>✦</span> Generate Proposal <span class="cta-arrow">→</span>
+                            </button>
+                        </form>
+                        <div class="presets">
+                            <span class="presets-label">Try an example</span>
+                            <div class="presets-row">
+                                <button class="chip" onclick="fillProposalExample('office')">🏢 Office Supplies</button>
+                                <button class="chip" onclick="fillProposalExample('hotel')">🏨 Hotel Amenities</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card result-glow">
+                        <div class="card-header">
+                            <div class="card-icon-wrap green">◈</div>
+                            <span class="card-title">AI Proposal</span>
+                        </div>
+                        <div class="empty" id="proposalPlaceholder">
+                            <div class="empty-icon">📋</div>
+                            <p>Enter client details to<br>generate a B2B proposal</p>
+                        </div>
+                        <div class="ai-result hidden" id="proposalContent"></div>
+                    </div>
+                </div>
+
+                <div class="card json-card hidden" id="proposalJson">
+                    <div class="card-header">
+                        <div class="card-icon-wrap mono">{ }</div>
+                        <span class="card-title">Structured JSON Output</span>
+                        <button class="copy-btn" onclick="copyJson('proposalJsonCode', this)">Copy</button>
+                    </div>
+                    <div class="json-pre"><code id="proposalJsonCode"></code></div>
+                </div>
+            </section>
+
+            <!-- ── Logs ── -->
+            <section class="panel" id="panel-logs">
+                <div class="page-header">
+                    <div>
+                        <div class="page-eyebrow">Observability</div>
+                        <h1 class="page-title">AI Prompt & Response Logs</h1>
+                        <p class="page-desc">Full audit trail of every AI interaction — prompts, responses, latency, and
+                            token usage.</p>
+                    </div>
+                    <div class="header-badges">
+                        <button class="btn-ghost" onclick="loadLogs()">↻ Refresh</button>
+                    </div>
+                </div>
                 <div class="card">
-                    <h3 class="card-title">Product Details</h3>
-                    <form id="categoryForm">
-                        <div class="form-group">
-                            <label for="productName">Product Name</label>
-                            <input type="text" id="productName" placeholder="e.g., Bamboo Toothbrush" required>
+                    <div id="logsContent">
+                        <div class="empty">
+                            <div class="empty-icon">📜</div>
+                            <p>Loading logs…</p>
                         </div>
-                        <div class="form-group">
-                            <label for="productDesc">Product Description</label>
-                            <textarea id="productDesc" rows="5" placeholder="Describe the product, its materials, features, and eco-friendly aspects..." required></textarea>
-                        </div>
-                        <button type="submit" class="btn-primary" id="btnCategorize">
-                            <span class="btn-icon">✨</span>
-                            Generate Categories & Tags
-                        </button>
-                    </form>
-
-                    <!-- Quick Examples -->
-                    <div class="examples">
-                        <p class="examples-label">Quick Examples:</p>
-                        <button class="btn-example" onclick="fillExample('bamboo')">🪥 Bamboo Toothbrush</button>
-                        <button class="btn-example" onclick="fillExample('tote')">👜 Jute Tote Bag</button>
-                        <button class="btn-example" onclick="fillExample('soap')">🧼 Organic Soap</button>
                     </div>
                 </div>
+            </section>
 
-                <!-- Results -->
-                <div class="card" id="categoryResults">
-                    <h3 class="card-title">AI-Generated Results</h3>
-                    <div class="placeholder" id="categoryPlaceholder">
-                        <div class="placeholder-icon">🤖</div>
-                        <p>Enter a product and click generate to see AI results here</p>
-                    </div>
-                    <div class="results-content hidden" id="categoryContent">
-                        <!-- Dynamically filled -->
-                    </div>
-                </div>
-            </div>
+        </main>
+    </div>
 
-            <!-- JSON Output -->
-            <div class="card json-section hidden" id="categoryJson">
-                <h3 class="card-title">📦 Structured JSON Output</h3>
-                <pre class="json-output"><code id="categoryJsonCode"></code></pre>
-            </div>
-        </section>
-
-        <!-- ─── Module 2: Proposal Generator ──────────────────────── -->
-        <section class="panel" id="panel-module2">
-            <div class="panel-header">
-                <h2>📄 AI B2B Proposal Generator</h2>
-                <p>Generate sustainable product procurement proposals for B2B clients with budget allocation and impact analysis.</p>
-            </div>
-
-            <div class="grid-2">
-                <!-- Input Form -->
-                <div class="card">
-                    <h3 class="card-title">Client Details</h3>
-                    <form id="proposalForm">
-                        <div class="form-group">
-                            <label for="clientName">Client / Company Name</label>
-                            <input type="text" id="clientName" placeholder="e.g., GreenTech Solutions Pvt Ltd" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="clientIndustry">Industry</label>
-                            <input type="text" id="clientIndustry" placeholder="e.g., IT & Software" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="budget">Budget (₹ INR)</label>
-                            <input type="number" id="budget" placeholder="e.g., 100000" min="1000" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="requirements">Requirements (optional)</label>
-                            <textarea id="requirements" rows="3" placeholder="Specific needs, preferences, quantity estimates..."></textarea>
-                        </div>
-                        <button type="submit" class="btn-primary" id="btnProposal">
-                            <span class="btn-icon">📝</span>
-                            Generate Proposal
-                        </button>
-                    </form>
-
-                    <div class="examples">
-                        <p class="examples-label">Quick Examples:</p>
-                        <button class="btn-example" onclick="fillProposalExample('office')">🏢 Office Supplies</button>
-                        <button class="btn-example" onclick="fillProposalExample('hotel')">🏨 Hotel Amenities</button>
-                    </div>
-                </div>
-
-                <!-- Results -->
-                <div class="card" id="proposalResults">
-                    <h3 class="card-title">AI-Generated Proposal</h3>
-                    <div class="placeholder" id="proposalPlaceholder">
-                        <div class="placeholder-icon">📋</div>
-                        <p>Fill in client details and click generate to create a B2B proposal</p>
-                    </div>
-                    <div class="results-content hidden" id="proposalContent">
-                        <!-- Dynamically filled -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- JSON Output -->
-            <div class="card json-section hidden" id="proposalJson">
-                <h3 class="card-title">📦 Structured JSON Output</h3>
-                <pre class="json-output"><code id="proposalJsonCode"></code></pre>
-            </div>
-        </section>
-
-        <!-- ─── Logs Panel ────────────────────────────────────────── -->
-        <section class="panel" id="panel-logs">
-            <div class="panel-header">
-                <h2>📊 AI Prompt & Response Logs</h2>
-                <p>Complete audit trail of all AI interactions with timestamps, models, and latency.</p>
-            </div>
-            <div class="card">
-                <div id="logsContent">
-                    <div class="placeholder">
-                        <div class="placeholder-icon">📜</div>
-                        <p>Loading logs...</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- ─── Footer ────────────────────────────────────────────────── -->
-    <footer class="footer">
-        <p>Rayeva AI Systems &copy; 2026 — Built for Sustainable Commerce</p>
-    </footer>
-
-    <!-- Loading Overlay -->
+    <!-- Loading -->
     <div class="loading-overlay hidden" id="loadingOverlay">
-        <div class="spinner"></div>
-        <p id="loadingText">AI is thinking...</p>
+        <div class="loading-card">
+            <div class="spin-wrap">
+                <div class="spin-ring"></div>
+                <div class="spin-dot">✦</div>
+            </div>
+            <div class="loading-title" id="loadingText">AI is thinking…</div>
+            <div class="loading-sub">This may take a few seconds</div>
+        </div>
     </div>
 
     <script src="/static/app.js"></script>
 </body>
+
 </html>
