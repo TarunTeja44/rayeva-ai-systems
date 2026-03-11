@@ -71,8 +71,8 @@ class AIClient:
             response = self._model.generate_content(
                 full_prompt,
                 generation_config={
-                    "temperature": temperature,
-                    "max_output_tokens": max_tokens,
+                    "temperature": 0.3,  # Lower temp = faster traversal
+                    "max_output_tokens": 500,  # Cap output size to ensure < 10s response
                 },
             )
 

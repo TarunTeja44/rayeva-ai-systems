@@ -42,78 +42,44 @@ SUSTAINABILITY_FILTER_OPTIONS = [
 
 # ─── Module 1: Category & Tag Generator Prompts ─────────────────────────────
 
-CATEGORY_SYSTEM_PROMPT = """You are an AI product categorization expert for Rayeva, a sustainable commerce platform in India. 
-Your job is to analyze product descriptions and generate accurate categorizations optimized for SEO and sustainability.
+CATEGORY_SYSTEM_PROMPT = """You are a fast AI categorizer for Rayeva eco-commerce.
+1. Primary category MUST be from: {categories}
+2. Sub-category must be specific.
+3. Generate exactly 5 SEO tags.
+4. Sustainability filters MUST be from: {filters}
+5. Confidence: "high", "medium", or "low".
+Respond with JSON ONLY."""
 
-IMPORTANT RULES:
-1. Primary category MUST be one from this list: {categories}
-2. Sub-category should be a specific type within the primary category
-3. Generate 5-10 SEO-friendly tags relevant to the product and sustainability
-4. Sustainability filters MUST only include applicable items from: {filters}
-5. Provide a confidence level: "high", "medium", or "low"
+CATEGORY_USER_PROMPT = """Product: {product_name}
+Desc: {product_description}
 
-Always respond with valid JSON only, no additional text."""
-
-CATEGORY_USER_PROMPT = """Analyze this product and return a JSON object:
-
-Product Name: {product_name}
-Product Description: {product_description}
-
-Return EXACTLY this JSON structure:
+Return EXACT JSON:
 {{
-    "primary_category": "<one from predefined list>",
-    "sub_category": "<specific sub-category>",
-    "seo_tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-    "sustainability_filters": ["filter1", "filter2"],
-    "confidence": "high|medium|low",
-    "reasoning": "<brief explanation of categorization>"
+    "primary_category": "...",
+    "sub_category": "...",
+    "seo_tags": ["t1", "t2", "t3", "t4", "t5"],
+    "sustainability_filters": ["f1", "f2"],
+    "confidence": "high",
+    "reasoning": "1 sentence explanation"
 }}"""
 
 # ─── Module 2: B2B Proposal Generator Prompts ───────────────────────────────
 
-PROPOSAL_SYSTEM_PROMPT = """You are a B2B sustainable product sourcing advisor for Rayeva, an eco-commerce platform in India.
-You create professional product proposals for businesses looking to switch to sustainable alternatives.
+PROPOSAL_SYSTEM_PROMPT = """You are a fast B2B eco-sourcing advisor.
+Keep total cost WITHIN budget. Allocate by percentage. 
+Suggest 3-4 items max. INR pricing.
+Respond with JSON ONLY."""
 
-IMPORTANT RULES:
-1. Suggest practical, real-world sustainable products (not fictional)
-2. Keep total cost WITHIN the provided budget
-3. Allocate budget strategically based on client industry and needs
-4. Include at least 4-6 product categories in the mix
-5. Provide realistic pricing for Indian market (in INR ₹)
-6. Always include an impact positioning summary highlighting sustainability benefits
+PROPOSAL_USER_PROMPT = """Client: {client_name} | {client_industry}
+Budget: ₹{budget} | {requirements}
 
-Always respond with valid JSON only, no additional text."""
-
-PROPOSAL_USER_PROMPT = """Generate a B2B sustainable product proposal:
-
-Client: {client_name}
-Industry: {client_industry}
-Budget: ₹{budget}
-Requirements: {requirements}
-
-Return EXACTLY this JSON structure:
+Return EXACT JSON:
 {{
     "product_mix": [
-        {{
-            "product_name": "<name>",
-            "category": "<category>",
-            "quantity": <number>,
-            "unit_price": <price_inr>,
-            "total_price": <total_inr>,
-            "sustainability_note": "<why this is sustainable>"
-        }}
+        {{ "product_name": "...", "category": "...", "quantity": 100, "unit_price": 50, "total_price": 5000, "sustainability_note": "1 line" }}
     ],
-    "budget_allocation": {{
-        "category_name": <percentage>,
-        "category_name2": <percentage>
-    }},
-    "cost_breakdown": {{
-        "subtotal": <amount>,
-        "sustainable_premium": <amount>,
-        "estimated_savings_vs_conventional": <amount>,
-        "total": <amount>,
-        "remaining_budget": <amount>
-    }},
-    "impact_summary": "<2-3 sentence impact positioning statement>",
-    "recommendations": "<strategic recommendations for the client>"
+    "budget_allocation": {{ "Cat1": 50, "Cat2": 50 }},
+    "cost_breakdown": {{ "subtotal": 5000, "sustainable_premium": 500, "estimated_savings_vs_conventional": 1000, "total": 5000, "remaining_budget": 0 }},
+    "impact_summary": "1 sentence",
+    "recommendations": "1 sentence"
 }}"""
