@@ -14,7 +14,12 @@ class Settings:
 
     APP_NAME: str = os.getenv("APP_NAME", "Rayeva AI Systems")
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./rayeva.db")
+    
+    # Vercel serverless functions have a read-only filesystem except for /tmp
+    # So if running on Vercel (indicated by VERCEL ENV var), use /tmp for sqlite
+    default_db_path = "sqlite:////tmp/rayeva.db" if os.getenv("VERCEL") else "sqlite:///./rayeva.db"
+    DATABASE_URL: str = os.getenv("DATABASE_URL", default_db_path)
+    
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
