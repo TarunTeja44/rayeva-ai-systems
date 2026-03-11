@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
     print(f"🚀 {settings.APP_NAME} started")
-    print(f"🤖 AI Mode: {'LIVE (OpenAI)' if settings.is_ai_enabled else 'MOCK (Demo Data)'}")
+    print(f"🤖 AI Mode: {'LIVE (Gemini)' if settings.is_ai_enabled else 'MOCK (Demo Data)'}") 
     yield
 
 # ─── App Initialization ─────────────────────────────────────────────────────

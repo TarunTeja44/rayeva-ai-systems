@@ -4,6 +4,7 @@ Provides a clean abstraction over the AI provider.
 """
 
 import json
+import re
 import time
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -20,12 +21,7 @@ class AIClient:
             try:
                 import google.generativeai as genai
                 genai.configure(api_key=settings.GEMINI_API_KEY)
-                self._model = genai.GenerativeModel(
-                    settings.GEMINI_MODEL,
-                    generation_config=genai.GenerationConfig(
-                        response_mime_type="application/json",
-                    ),
-                )
+                self._model = genai.GenerativeModel(settings.GEMINI_MODEL)
             except Exception:
                 self._model = None
 
@@ -77,7 +73,6 @@ class AIClient:
                 generation_config={
                     "temperature": temperature,
                     "max_output_tokens": max_tokens,
-                    "response_mime_type": "application/json",
                 },
             )
 
@@ -96,13 +91,23 @@ class AIClient:
             # Log the call
             self._log(db, module, user_prompt, content, settings.GEMINI_MODEL, tokens, latency, "success")
 
-            return json.loads(content)
+            return json.loads(self._clean_json_response(content))
 
         except Exception as e:
             latency = (time.time() - start_time) * 1000
             self._log(db, module, user_prompt, str(e), settings.GEMINI_MODEL, None, latency, "error", str(e))
             # Fall back to mock on error
             return self._get_mock_response(module)
+
+    @staticmethod
+    def _clean_json_response(text: str) -> str:
+        """Strip markdown code fences (```json ... ```) from AI response."""
+        text = text.strip()
+        # Remove ```json ... ``` or ``` ... ```
+        match = re.match(r'^```(?:json)?\s*\n(.*?)\n```\s*$', text, re.DOTALL)
+        if match:
+            return match.group(1).strip()
+        return text
 
     def _mock_generate(
         self,
