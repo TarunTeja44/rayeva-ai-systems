@@ -240,6 +240,11 @@ class AIClient:
         error: Optional[str] = None,
     ):
         """Log AI call to database."""
+        import os
+        if os.getenv("VERCEL"):
+            print(f"[VERCEL LOG BYPASS] {module} | Status: {status} | Latency: {latency}ms")
+            return
+            
         try:
             log = AILog(
                 module=module,
@@ -253,9 +258,9 @@ class AIClient:
             )
             db.add(log)
             db.commit()
-        except Exception:
-            db.rollback()
-
+        except Exception as e:
+            # Don't fail the main request if logging fails
+            print(f"Failed to log AI call: {e}")
 
 # Singleton instance
 ai_client = AIClient()

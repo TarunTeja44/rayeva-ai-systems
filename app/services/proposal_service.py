@@ -4,6 +4,7 @@ Handles the business rules and database operations, separate from AI logic.
 """
 
 import logging
+import os
 from sqlalchemy.orm import Session
 from app.models.proposal import Proposal, ProposalItem
 from app.schemas.proposal import ProposalItemSchema, CostBreakdown
@@ -45,49 +46,63 @@ async def create_proposal(
     savings_pct = round((savings / total_cost * 100), 1) if total_cost > 0 else 0
 
     # Step 3: Store proposal in DB
-    proposal = Proposal(
-        client_name=client_name,
-        client_industry=client_industry,
-        budget=budget,
-        requirements=requirements,
-        product_mix=ai_result["product_mix"],
-        budget_allocation=ai_result["budget_allocation"],
-        cost_breakdown=ai_result["cost_breakdown"],
-        impact_summary=ai_result["impact_summary"],
-        total_estimated_cost=total_cost,
-        savings_percentage=savings_pct,
-    )
-    db.add(proposal)
-    db.commit()
-    db.refresh(proposal)
+    proposal_id = 1
+    created_at_str = None
+    
+    if not os.getenv("VERCEL"):
+        proposal = Proposal(
+            client_name=client_name,
+            client_industry=client_industry,
+            budget=budget,
+            requirements=requirements,
+            product_mix=ai_result["product_mix"],
+            budget_allocation=ai_result["budget_allocation"],
+            cost_breakdown=ai_result["cost_breakdown"],
+            impact_summary=ai_result["impact_summary"],
+            total_estimated_cost=total_cost,
+            savings_percentage=savings_pct,
+        )
+        try:
+            db.add(proposal)
+            db.commit()
+            db.refresh(proposal)
+            proposal_id = proposal.id
+            created_at_str = proposal.created_at.isoformat() if proposal.created_at else None
+        except Exception as e:
+            logger.error(f"Failed to save proposal to DB (Vercel bypass): {e}")
+            db.rollback()
 
     # Store individual line items
-    for item_data in ai_result["product_mix"]:
-        item = ProposalItem(
-            proposal_id=proposal.id,
-            product_name=item_data.get("product_name", ""),
-            category=item_data.get("category", ""),
-            quantity=item_data.get("quantity", 0),
-            unit_price=item_data.get("unit_price", 0),
-            total_price=item_data.get("total_price", 0),
-            sustainability_note=item_data.get("sustainability_note", ""),
-        )
-        db.add(item)
-    db.commit()
+    if not os.getenv("VERCEL") and proposal_id != 1:
+        for item_data in ai_result["product_mix"]:
+            item = ProposalItem(
+                proposal_id=proposal_id,
+                product_name=item_data.get("product_name", ""),
+                category=item_data.get("category", ""),
+                quantity=item_data.get("quantity", 0),
+                unit_price=item_data.get("unit_price", 0),
+                total_price=item_data.get("total_price", 0),
+                sustainability_note=item_data.get("sustainability_note", ""),
+            )
+            db.add(item)
+        try:
+            db.commit()
+        except:
+            db.rollback()
 
     # Step 4: Return structured response
     return {
-        "id": proposal.id,
-        "client_name": proposal.client_name,
-        "client_industry": proposal.client_industry,
-        "budget": proposal.budget,
+        "id": proposal_id,
+        "client_name": client_name,
+        "client_industry": client_industry,
+        "budget": budget,
         "product_mix": ai_result["product_mix"],
         "budget_allocation": ai_result["budget_allocation"],
         "cost_breakdown": ai_result["cost_breakdown"],
         "impact_summary": ai_result["impact_summary"],
         "recommendations": ai_result.get("recommendations", ""),
         "ai_mode": "live" if ai_client.is_live else "mock",
-        "created_at": proposal.created_at.isoformat() if proposal.created_at else None,
+        "created_at": created_at_str,
     }
 
 

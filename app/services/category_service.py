@@ -4,6 +4,7 @@ Handles the business rules and database operations, separate from AI logic.
 """
 
 import logging
+import os
 from sqlalchemy.orm import Session
 from app.models.product import Product, Category
 from app.schemas.product import CategoryResult
@@ -31,29 +32,36 @@ async def categorize_product(name: str, description: str, db: Session) -> dict:
         logger.error(f"AI output failed schema validation: {e} | raw={ai_result}")
         raise ValueError(f"AI produced invalid output: {e}")
 
-    # Step 2: Create/find category in DB
-    category = _get_or_create_category(ai_result["primary_category"], db)
-
     # Step 3: Store product with AI-generated data
-    product = Product(
-        name=name,
-        description=description,
-        primary_category=ai_result["primary_category"],
-        sub_category=ai_result["sub_category"],
-        seo_tags=ai_result["seo_tags"],
-        sustainability_filters=ai_result["sustainability_filters"],
-        ai_confidence=ai_result["confidence"],
-        category_id=category.id if category else None,
-    )
-    db.add(product)
-    db.commit()
-    db.refresh(product)
+    product_id = 1
+    created_at_str = None
+    if not os.getenv("VERCEL"):
+        category = _get_or_create_category(ai_result["primary_category"], db)
+        product = Product(
+            name=name,
+            description=description,
+            primary_category=ai_result["primary_category"],
+            sub_category=ai_result["sub_category"],
+            seo_tags=ai_result["seo_tags"],
+            sustainability_filters=ai_result["sustainability_filters"],
+            ai_confidence=ai_result["confidence"],
+            category_id=category.id if category else None,
+        )
+        try:
+            db.add(product)
+            db.commit()
+            db.refresh(product)
+            product_id = product.id
+            created_at_str = product.created_at.isoformat() if product.created_at else None
+        except Exception as e:
+            logger.error(f"Failed to save to DB (Vercel bypass): {e}")
+            db.rollback()
 
     # Step 4: Return structured response
     return {
-        "id": product.id,
-        "name": product.name,
-        "description": product.description,
+        "id": product_id,
+        "name": name,
+        "description": description,
         "categorization": {
             "primary_category": ai_result["primary_category"],
             "sub_category": ai_result["sub_category"],
@@ -63,7 +71,7 @@ async def categorize_product(name: str, description: str, db: Session) -> dict:
             "reasoning": ai_result["reasoning"],
         },
         "ai_mode": "live" if ai_client.is_live else "mock",
-        "created_at": product.created_at.isoformat() if product.created_at else None,
+        "created_at": created_at_str,
     }
 
 
