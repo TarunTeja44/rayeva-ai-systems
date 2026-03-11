@@ -17,16 +17,16 @@ from app.routers import categories, proposals
 from app.models.log import AILog
 from app.seed import seed_categories
 
+# Initialize database and seed data synchronously to survive Vercel serverless cold starts
+init_db()
+db = SessionLocal()
+try:
+    seed_categories(db)
+finally:
+    db.close()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialize database and seed data on startup."""
-    init_db()
-    db = SessionLocal()
-    try:
-        seed_categories(db)
-    finally:
-        db.close()
     print(f"🚀 {settings.APP_NAME} started")
     print(f"🤖 AI Mode: {'LIVE (Gemini)' if settings.is_ai_enabled else 'MOCK (Demo Data)'}") 
     yield
