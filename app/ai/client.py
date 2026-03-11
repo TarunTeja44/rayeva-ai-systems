@@ -6,6 +6,7 @@ Provides a clean abstraction over the AI provider.
 import json
 import re
 import time
+import asyncio
 from typing import Optional
 from sqlalchemy.orm import Session
 from app.config import settings
@@ -68,13 +69,16 @@ class AIClient:
             # Combine system + user prompt for Gemini
             full_prompt = f"{system_prompt}\n\n---\n\n{user_prompt}"
 
-            # Make async API call
-            response = await self._model.generate_content_async(
-                full_prompt,
-                generation_config={
-                    "temperature": 0.3,
-                    "max_output_tokens": 500,
-                },
+            # Make async API call wrapped in an 8-second timeout to survive Vercel limits
+            response = await asyncio.wait_for(
+                self._model.generate_content_async(
+                    full_prompt,
+                    generation_config={
+                        "temperature": 0.3,
+                        "max_output_tokens": 500,
+                    },
+                ),
+                timeout=8.0
             )
 
             content = response.text
