@@ -26,7 +26,7 @@ def _sanitize_input(text: str, max_length: int = 2000) -> str:
     return text.strip()
 
 
-def generate_category_tags(product_name: str, product_description: str, db: Session) -> dict:
+async def generate_category_tags(product_name: str, product_description: str, db: Session) -> dict:
     """
     Use AI to generate category, sub-category, SEO tags, and sustainability filters
     for a given product.
@@ -43,7 +43,7 @@ def generate_category_tags(product_name: str, product_description: str, db: Sess
         product_description=_sanitize_input(product_description, 2000),
     )
 
-    result = ai_client.generate(
+    result = await ai_client.generate(
         system_prompt=system_prompt,
         user_prompt=user_prompt,
         module="category_generator",

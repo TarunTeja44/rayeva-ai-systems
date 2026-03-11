@@ -13,7 +13,7 @@ from app.ai.client import ai_client
 logger = logging.getLogger(__name__)
 
 
-def categorize_product(name: str, description: str, db: Session) -> dict:
+async def categorize_product(name: str, description: str, db: Session) -> dict:
     """
     Business flow:
     1. Call AI to generate categorization
@@ -22,7 +22,7 @@ def categorize_product(name: str, description: str, db: Session) -> dict:
     4. Return structured response
     """
     # Step 1: AI generates categorization
-    ai_result = generate_category_tags(name, description, db)
+    ai_result = await generate_category_tags(name, description, db)
 
     # Step 2: Pydantic schema validation — fail-fast if AI output is malformed
     try:

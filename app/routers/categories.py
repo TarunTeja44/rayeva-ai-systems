@@ -12,7 +12,7 @@ router = APIRouter(prefix="/api/categories", tags=["Module 1: Category & Tag Gen
 
 
 @router.post("/generate", response_model=ProductResponse)
-def generate_categorization(product: ProductInput, db: Session = Depends(get_db)):
+async def generate_categorization(product: ProductInput, db: Session = Depends(get_db)):
     """
     🏷️ AI Auto-Category & Tag Generator
 
@@ -26,7 +26,7 @@ def generate_categorization(product: ProductInput, db: Session = Depends(get_db)
     All results stored in database with full AI logging.
     """
     try:
-        result = categorize_product(product.name, product.description, db)
+        result = await categorize_product(product.name, product.description, db)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Categorization failed: {str(e)}")

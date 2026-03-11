@@ -29,23 +29,23 @@ class AIClient:
     def is_live(self) -> bool:
         return self._model is not None
 
-    def generate(
+    async def generate(
         self,
         system_prompt: str,
         user_prompt: str,
         module: str,
         db: Session,
         temperature: float = 0.7,
-        max_tokens: int = 2000,
+        max_tokens: int = 500,
     ) -> dict:
         """
-        Generate AI response. Uses Gemini if available, falls back to mock.
+        Generate AI response async. Uses Gemini if available, falls back to mock.
         Always logs the prompt and response.
         """
         start_time = time.time()
 
         if self.is_live:
-            return self._live_generate(
+            return await self._live_generate(
                 system_prompt, user_prompt, module, db, temperature, max_tokens, start_time
             )
         else:
@@ -53,7 +53,7 @@ class AIClient:
                 system_prompt, user_prompt, module, db, start_time
             )
 
-    def _live_generate(
+    async def _live_generate(
         self,
         system_prompt: str,
         user_prompt: str,
@@ -68,11 +68,12 @@ class AIClient:
             # Combine system + user prompt for Gemini
             full_prompt = f"{system_prompt}\n\n---\n\n{user_prompt}"
 
-            response = self._model.generate_content(
+            # Make async API call
+            response = await self._model.generate_content_async(
                 full_prompt,
                 generation_config={
-                    "temperature": 0.3,  # Lower temp = faster traversal
-                    "max_output_tokens": 500,  # Cap output size to ensure < 10s response
+                    "temperature": 0.3,
+                    "max_output_tokens": 500,
                 },
             )
 

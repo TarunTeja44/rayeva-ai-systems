@@ -20,7 +20,7 @@ def _sanitize_input(text: str, max_length: int = 2000) -> str:
     return text.strip()
 
 
-def generate_proposal(
+async def generate_proposal(
     client_name: str,
     client_industry: str,
     budget: float,
@@ -39,13 +39,13 @@ def generate_proposal(
         requirements=_sanitize_input(requirements, 2000) if requirements else "General sustainable product sourcing",
     )
 
-    result = ai_client.generate(
+    result = await ai_client.generate(
         system_prompt=system_prompt,
         user_prompt=user_prompt,
         module="proposal_generator",
         db=db,
         temperature=0.7,
-        max_tokens=3000,
+        max_tokens=500,
     )
 
     return _validate_proposal_response(result, budget)

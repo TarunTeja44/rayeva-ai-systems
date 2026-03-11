@@ -13,7 +13,7 @@ from app.ai.client import ai_client
 logger = logging.getLogger(__name__)
 
 
-def create_proposal(
+async def create_proposal(
     client_name: str,
     client_industry: str,
     budget: float,
@@ -28,7 +28,7 @@ def create_proposal(
     4. Return structured response
     """
     # Step 1: AI generates proposal
-    ai_result = generate_proposal(client_name, client_industry, budget, requirements, db)
+    ai_result = await generate_proposal(client_name, client_industry, budget, requirements, db)
 
     # Step 2: Pydantic schema validation — fail-fast if AI output is malformed
     try:

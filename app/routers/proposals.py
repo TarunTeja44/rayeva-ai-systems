@@ -12,7 +12,7 @@ router = APIRouter(prefix="/api/proposals", tags=["Module 2: B2B Proposal Genera
 
 
 @router.post("/generate", response_model=ProposalResponse)
-def generate_proposal(proposal: ProposalInput, db: Session = Depends(get_db)):
+async def generate_proposal(proposal: ProposalInput, db: Session = Depends(get_db)):
     """
     📄 AI B2B Proposal Generator
 
@@ -26,7 +26,7 @@ def generate_proposal(proposal: ProposalInput, db: Session = Depends(get_db)):
     All results stored in database with full AI logging.
     """
     try:
-        result = create_proposal(
+        result = await create_proposal(
             proposal.client_name,
             proposal.client_industry,
             proposal.budget,
