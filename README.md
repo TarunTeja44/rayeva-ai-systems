@@ -188,6 +188,38 @@ Accessible at: `GET /api/logs`
 
 ---
 
+## 🔑 API Key Setup (Required for Live AI Mode)
+
+> **Without an OpenAI API key, the app runs in MOCK/DEMO mode** — all responses are pre-set realistic examples and no real AI calls are made.
+
+### Step 1: Get Your OpenAI API Key
+1. Go to [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+2. Click **"Create new secret key"**
+3. Copy the key (starts with `sk-...`)
+
+### Step 2: Set the Key Locally
+```bash
+# Copy the example env file
+copy .env.example .env    # Windows
+# cp .env.example .env    # Linux/Mac
+
+# Open .env and set your key:
+OPENAI_API_KEY=sk-...your-actual-key-here...
+```
+
+### Step 3: Set the Key on Vercel (for deployment)
+1. Open your project on [vercel.com](https://vercel.com)
+2. Go to **Settings → Environment Variables**
+3. Add a new variable:
+   - **Name:** `OPENAI_API_KEY`
+   - **Value:** `sk-...your-actual-key-here...`
+   - **Environment:** Production ✅, Preview ✅, Development ✅
+4. Click **Save** and **Redeploy**
+
+> ✅ When the key is set, the UI shows **"AI: LIVE"** badge. Without a key it shows **"AI: MOCK (Demo)"**.
+
+---
+
 ## 🚀 Setup & Run
 
 ### Prerequisites
@@ -198,7 +230,7 @@ Accessible at: `GET /api/logs`
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/rayeva-ai-systems.git
+git clone https://github.com/TarunTeja44/rayeva-ai-systems.git
 cd rayeva-ai-systems
 
 # Create virtual environment
@@ -209,9 +241,9 @@ venv\Scripts\activate    # Windows
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure environment
+# Configure environment (see API Key Setup section above)
 copy .env.example .env
-# Edit .env and add your OPENAI_API_KEY (optional — works without it in demo mode)
+# Edit .env and add your OPENAI_API_KEY
 ```
 
 ### Run the Application
@@ -228,6 +260,22 @@ python -m uvicorn app.main:app --reload --port 8000
 | http://localhost:8000/docs | Swagger API Documentation |
 | http://localhost:8000/redoc | ReDoc API Documentation |
 | http://localhost:8000/api/health | Health Check |
+
+---
+
+## ☁️ Vercel Deployment
+
+This project is deployed on Vercel as a Python serverless function.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/TarunTeja44/rayeva-ai-systems)
+
+### One-Click Deploy Steps
+1. Click the **Deploy with Vercel** button above
+2. Connect your GitHub account and import the repository
+3. In **Environment Variables**, add `OPENAI_API_KEY` with your key
+4. Click **Deploy** — done!
+
+> **Note:** Vercel uses serverless Python functions. The SQLite database is ephemeral per request (suitable for demo/showcase). For full persistence, use Railway or Render.
 
 ---
 
