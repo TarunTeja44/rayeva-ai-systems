@@ -46,7 +46,7 @@ Build production-ready AI modules that reduce manual catalog effort, improve B2B
 | **Prompt + Response Logging** | Every AI call is logged to `ai_logs` table with prompt, response, latency, tokens |
 | **Environment-based Config** | API keys and settings loaded from `.env` via `python-dotenv` |
 | **Error Handling & Validation** | Input validation (Pydantic), AI response validation, graceful fallback to mock |
-| **Mock/Demo Mode** | Works without OpenAI API key using realistic mock data |
+| **Mock/Demo Mode** | Works without Gemini API key using realistic mock data |
 
 ---
 
@@ -179,7 +179,7 @@ Every AI interaction is logged with:
 - Module name (which module called AI)
 - Full prompt text
 - Full response text
-- Model used (gpt-4o-mini or mock)
+- Model used (gemini-2.0-flash or mock)
 - Token count
 - Latency in milliseconds
 - Status (success/error/mock)
@@ -190,12 +190,14 @@ Accessible at: `GET /api/logs`
 
 ## 🔑 API Key Setup (Required for Live AI Mode)
 
-> **Without an OpenAI API key, the app runs in MOCK/DEMO mode** — all responses are pre-set realistic examples and no real AI calls are made.
+> **Without a Gemini API key, the app runs in MOCK/DEMO mode** — all responses are pre-set realistic examples and no real AI calls are made.
 
-### Step 1: Get Your OpenAI API Key
-1. Go to [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-2. Click **"Create new secret key"**
-3. Copy the key (starts with `sk-...`)
+### Step 1: Get Your Google Gemini API Key (FREE)
+1. Go to [https://aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+2. Click **"Create API Key"**
+3. Copy the key (starts with `AIza...`)
+
+> 💡 **The Gemini API is free** — no credit card required! Free tier gives 15 requests/minute.
 
 ### Step 2: Set the Key Locally
 ```bash
@@ -204,15 +206,15 @@ copy .env.example .env    # Windows
 # cp .env.example .env    # Linux/Mac
 
 # Open .env and set your key:
-OPENAI_API_KEY=sk-...your-actual-key-here...
+GEMINI_API_KEY=AIza...your-actual-key-here...
 ```
 
 ### Step 3: Set the Key on Vercel (for deployment)
 1. Open your project on [vercel.com](https://vercel.com)
 2. Go to **Settings → Environment Variables**
 3. Add a new variable:
-   - **Name:** `OPENAI_API_KEY`
-   - **Value:** `sk-...your-actual-key-here...`
+   - **Name:** `GEMINI_API_KEY`
+   - **Value:** `AIza...your-actual-key-here...`
    - **Environment:** Production ✅, Preview ✅, Development ✅
 4. Click **Save** and **Redeploy**
 
@@ -243,7 +245,7 @@ pip install -r requirements.txt
 
 # Configure environment (see API Key Setup section above)
 copy .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+# Edit .env and add your GEMINI_API_KEY
 ```
 
 ### Run the Application
@@ -272,7 +274,7 @@ This project is deployed on Vercel as a Python serverless function.
 ### One-Click Deploy Steps
 1. Click the **Deploy with Vercel** button above
 2. Connect your GitHub account and import the repository
-3. In **Environment Variables**, add `OPENAI_API_KEY` with your key
+3. In **Environment Variables**, add `GEMINI_API_KEY` with your key
 4. Click **Deploy** — done!
 
 > **Note:** Vercel uses serverless Python functions. The SQLite database is ephemeral per request (suitable for demo/showcase). For full persistence, use Railway or Render.
@@ -300,7 +302,7 @@ rayeva-ai-systems/
 │   │   ├── category_service.py
 │   │   └── proposal_service.py
 │   ├── ai/                   # AI layer (separated)
-│   │   ├── client.py         # OpenAI wrapper + mock
+│   │   ├── client.py         # Gemini wrapper + mock
 │   │   ├── prompts.py        # All prompt templates
 │   │   ├── category_ai.py    # Module 1 AI logic
 │   │   └── proposal_ai.py    # Module 2 AI logic
@@ -328,7 +330,7 @@ rayeva-ai-systems/
 |-----------|-----------|
 | Backend | Python 3.9+ / FastAPI |
 | Database | SQLite + SQLAlchemy ORM |
-| AI Engine | OpenAI GPT-4o-mini (with mock fallback) |
+| AI Engine | Google Gemini 2.0 Flash (free tier, with mock fallback) |
 | Frontend | Vanilla HTML/CSS/JS |
 | Validation | Pydantic v2 |
 | Config | python-dotenv |

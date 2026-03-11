@@ -1,5 +1,5 @@
 """
-OpenAI client wrapper with retry logic, logging, and mock fallback.
+Google Gemini client wrapper with retry logic, logging, and mock fallback.
 Provides a clean abstraction over the AI provider.
 """
 
@@ -12,20 +12,26 @@ from app.models.log import AILog
 
 
 class AIClient:
-    """Wrapper around OpenAI API with logging and mock fallback."""
+    """Wrapper around Google Gemini API with logging and mock fallback."""
 
     def __init__(self):
-        self._client = None
+        self._model = None
         if settings.is_ai_enabled:
             try:
-                from openai import OpenAI
-                self._client = OpenAI(api_key=settings.OPENAI_API_KEY)
+                import google.generativeai as genai
+                genai.configure(api_key=settings.GEMINI_API_KEY)
+                self._model = genai.GenerativeModel(
+                    settings.GEMINI_MODEL,
+                    generation_config=genai.GenerationConfig(
+                        response_mime_type="application/json",
+                    ),
+                )
             except Exception:
-                self._client = None
+                self._model = None
 
     @property
     def is_live(self) -> bool:
-        return self._client is not None
+        return self._model is not None
 
     def generate(
         self,
@@ -37,7 +43,7 @@ class AIClient:
         max_tokens: int = 2000,
     ) -> dict:
         """
-        Generate AI response. Uses OpenAI if available, falls back to mock.
+        Generate AI response. Uses Gemini if available, falls back to mock.
         Always logs the prompt and response.
         """
         start_time = time.time()
@@ -61,31 +67,40 @@ class AIClient:
         max_tokens: int,
         start_time: float,
     ) -> dict:
-        """Make a real API call to OpenAI."""
+        """Make a real API call to Google Gemini."""
         try:
-            response = self._client.chat.completions.create(
-                model=settings.OPENAI_MODEL,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=temperature,
-                max_tokens=max_tokens,
-                response_format={"type": "json_object"},
+            # Combine system + user prompt for Gemini
+            full_prompt = f"{system_prompt}\n\n---\n\n{user_prompt}"
+
+            response = self._model.generate_content(
+                full_prompt,
+                generation_config={
+                    "temperature": temperature,
+                    "max_output_tokens": max_tokens,
+                    "response_mime_type": "application/json",
+                },
             )
 
-            content = response.choices[0].message.content
+            content = response.text
             latency = (time.time() - start_time) * 1000
-            tokens = response.usage.total_tokens if response.usage else None
+
+            # Estimate tokens (Gemini doesn't always provide exact count)
+            tokens = None
+            if hasattr(response, 'usage_metadata') and response.usage_metadata:
+                tokens = (
+                    getattr(response.usage_metadata, 'total_token_count', None)
+                    or getattr(response.usage_metadata, 'candidates_token_count', 0)
+                    + getattr(response.usage_metadata, 'prompt_token_count', 0)
+                )
 
             # Log the call
-            self._log(db, module, user_prompt, content, settings.OPENAI_MODEL, tokens, latency, "success")
+            self._log(db, module, user_prompt, content, settings.GEMINI_MODEL, tokens, latency, "success")
 
             return json.loads(content)
 
         except Exception as e:
             latency = (time.time() - start_time) * 1000
-            self._log(db, module, user_prompt, str(e), settings.OPENAI_MODEL, None, latency, "error", str(e))
+            self._log(db, module, user_prompt, str(e), settings.GEMINI_MODEL, None, latency, "error", str(e))
             # Fall back to mock on error
             return self._get_mock_response(module)
 
