@@ -4,6 +4,7 @@ Provides a clean abstraction over the AI provider.
 """
 
 import json
+import os
 import re
 import time
 import asyncio
@@ -22,11 +23,10 @@ class AIClient:
             try:
                 import google.generativeai as genai
                 genai.configure(api_key=settings.GEMINI_API_KEY)
-                # Use REST transport instead of gRPC for better compatibility with Vercel serverless
                 self._model = genai.GenerativeModel(
-                    model_name=settings.GEMINI_MODEL,
-                    transport='rest'
+                    model_name=settings.GEMINI_MODEL
                 )
+                print(f"Gemini client initialized with model: {settings.GEMINI_MODEL}")
             except Exception as e:
                 print(f"Failed to initialize Gemini client: {e}")
                 self._model = None
@@ -74,6 +74,9 @@ class AIClient:
             # Combine system + user prompt for Gemini
             full_prompt = f"{system_prompt}\n\n---\n\n{user_prompt}"
 
+            if os.getenv("VERCEL"):
+                print(f"[DEBUG] Starting Gemini call for module={module}")
+
             # Make async API call wrapped in an 8-second timeout to survive Vercel limits
             response = await asyncio.wait_for(
                 self._model.generate_content_async(
@@ -88,7 +91,7 @@ class AIClient:
 
             content = response.text
             if os.getenv("VERCEL"):
-                print(f"[DEBUG] Raw Gemini response (truncated): {content[:500]}...")
+                print(f"[DEBUG] Got response, length={len(content)}")
             latency = (time.time() - start_time) * 1000
 
             # Estimate tokens (Gemini doesn't always provide exact count)
@@ -107,6 +110,7 @@ class AIClient:
 
         except Exception as e:
             latency = (time.time() - start_time) * 1000
+            print(f"[ERROR] Gemini API call failed: {type(e).__name__}: {e}")
             self._log(db, module, user_prompt, str(e), settings.GEMINI_MODEL, None, latency, "error", str(e))
             # Fall back to mock on error
             return self._get_mock_response(module)
@@ -253,9 +257,8 @@ class AIClient:
         error: Optional[str] = None,
     ):
         """Log AI call to database."""
-        import os
         if os.getenv("VERCEL"):
-            print(f"[VERCEL LOG BYPASS] {module} | Status: {status} | Latency: {latency}ms")
+            print(f"[LOG] {module} | Status: {status} | Latency: {round(latency, 1)}ms")
             return
             
         try:
