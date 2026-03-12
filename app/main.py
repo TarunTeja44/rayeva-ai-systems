@@ -74,6 +74,8 @@ def get_logs(
     db: Session = Depends(get_db),
 ):
     """📊 View AI prompt/response logs."""
+    if os.getenv("VERCEL"):
+        return {"total": 0, "logs": [], "note": "Logs are not persisted on Vercel serverless (no database)."}
     logs = db.query(AILog).order_by(AILog.created_at.desc()).offset(skip).limit(limit).all()
     total = db.query(AILog).count()
     return {
