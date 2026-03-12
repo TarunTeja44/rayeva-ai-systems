@@ -22,8 +22,13 @@ class AIClient:
             try:
                 import google.generativeai as genai
                 genai.configure(api_key=settings.GEMINI_API_KEY)
-                self._model = genai.GenerativeModel(settings.GEMINI_MODEL)
-            except Exception:
+                # Use REST transport instead of gRPC for better compatibility with Vercel serverless
+                self._model = genai.GenerativeModel(
+                    model_name=settings.GEMINI_MODEL,
+                    transport='rest'
+                )
+            except Exception as e:
+                print(f"Failed to initialize Gemini client: {e}")
                 self._model = None
 
     @property
@@ -82,6 +87,8 @@ class AIClient:
             )
 
             content = response.text
+            if os.getenv("VERCEL"):
+                print(f"[DEBUG] Raw Gemini response (truncated): {content[:500]}...")
             latency = (time.time() - start_time) * 1000
 
             # Estimate tokens (Gemini doesn't always provide exact count)
@@ -108,10 +115,16 @@ class AIClient:
     def _clean_json_response(text: str) -> str:
         """Strip markdown code fences (```json ... ```) from AI response."""
         text = text.strip()
-        # Remove ```json ... ``` or ``` ... ```
-        match = re.match(r'^```(?:json)?\s*\n(.*?)\n```\s*$', text, re.DOTALL)
-        if match:
-            return match.group(1).strip()
+        # More robust regex: find the first ```json ... ``` block
+        json_match = re.search(r'```json\s*(.*?)\s*```', text, re.DOTALL)
+        if json_match:
+            return json_match.group(1).strip()
+        
+        # Fallback: find any ``` ... ``` block
+        generic_match = re.search(r'```\s*(.*?)\s*```', text, re.DOTALL)
+        if generic_match:
+            return generic_match.group(1).strip()
+            
         return text
 
     def _mock_generate(
